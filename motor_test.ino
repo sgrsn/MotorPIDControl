@@ -6,6 +6,7 @@ void tickPath();
 RotaryEncoder encoder = RotaryEncoder(2, 3, &tickPath);
 MotorControl motor(12, 13, 4, 5, 6);
 PID pid;
+int32_t Registar[0x80] = {};
 
 void tickPath()
 {
@@ -13,24 +14,25 @@ void tickPath()
 }
 void setup()
 {
-  Serial.begin(57600);
-  pid.setParameter(0.000006, 0.151515);
+  Serial.begin(115200);
+  //pid.setParameter(0.00080, 0, 0);
+  pid.setParameter(0.00080, 0.123077);
 }
 float angle = 0;
 float prev_angle = 0;
 int nowtime = 0;
 int prev_time = 0;
-float omega_sumpling[] = {0,0,0,0,0,0,0,0,0,0};
-float m_omega = 0;
 float omega = 0;
-float prev_omega = 0;
-bool controlFlag = false;
+int controlFlag = 0;
 
-float target_omega = 2000;
-
-int sumpling_length = sizeof(omega_sumpling) / sizeof(float);
+float target_omega = 2500;
 
 void loop()
+{
+  pidSeq();
+}
+
+void pidSeq()
 {
   prev_angle = angle;
   angle = encoder.getAngle();
@@ -45,10 +47,12 @@ void loop()
   }
   delay(15);
 
-  if(controlFlag)
+  if(controlFlag==1)
   {
     float e = pid.control(target_omega, omega);
     motor.control(e);
+    Serial.print(e);
+    Serial.print(", ");
   }
   else
   {
@@ -60,8 +64,20 @@ void serialEvent()
 {
   if(Serial.available() > 0)
   {
+    Serial.read();
     pid.reset(target_omega);
-    controlFlag = !controlFlag;
+    controlFlag = !(controlFlag);
   }
 }
 
+void test()
+{
+  motor.control(1);
+  delay(3000);
+  motor.control(0);
+  delay(3000);
+  motor.control(-1);
+  delay(3000);
+  motor.control(0);
+  delay(3000);
+}
