@@ -2,7 +2,6 @@
 #define MOTORCONTROL_H
 
 #include <lbed.h>
-#include <LM73.h>
 
 #define break_time 1  //[ms]
 
